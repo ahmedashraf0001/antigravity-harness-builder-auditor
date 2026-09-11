@@ -4,7 +4,7 @@
 
 > [!IMPORTANT]
 > **User-Invoked Only**:
-> Mode 3 runs only upon explicit user request (e.g. *"audit our harness"*, *"update this command"*, *"this rule is annoying"*). It is never triggered automatically or speculatively.
+> Mode 3 runs only upon explicit user request (e.g. *"audit our harness"*, *"update this command"*, *"this rule is annoying"*) — or, when SKILL.md Step 0.3's auto-detection table resolves to Mode 3 from a generic invocation with no audit-flavored language, only after the user has explicitly confirmed via that step's confirmation gate that they want to proceed. It is never entered off workspace state alone with no user confirmation of any kind.
 
 ---
 
@@ -26,10 +26,12 @@ Ask before inspecting:
 > *"What specific change or milestone triggered this audit?"*
 
 ### Step 2 — Investigate & Diff Against Live Harness
-Compare codebase reality against the existing harness configuration. Classify each discrepancy into one of three categories:
+**If application code already exists**: compare codebase reality against the existing harness configuration. Classify each discrepancy into one of three categories:
 - **New**: An entity or pattern not covered by any existing track, role, or invariant.
 - **Stale**: An existing track, rule, or verification command that no longer matches the code.
 - **Silently Invalidated**: An invariant whose text still runs without error, but whose *underlying domain assumption* was broken by recent changes.
+
+**If no application code exists yet** (`SKILL.md`'s auto-detection table's "no code, prior versioned harness exists" row — a scope or plan change arriving after a Genesis pass was approved but before implementation started): there is no code to diff against, so this step cannot run as written above. Instead, treat it as a Genesis-style discovery conversation scoped to what changed, run against the existing `PROJECT_SPEC.md` rather than a blank slate — walk through whichever of Mode 1's 8 Discovery Topics (`mode1_genesis.md`) are affected by the Step 1 trigger, propose the resulting spec updates directly, and classify each one New / Stale / Silently Invalidated relative to the *existing spec's* prior answers rather than relative to code.
 
 ### Step 3 — Present Reasoned Diff with Inherited Invariants
 For every item, state the boundary it will newly inherit:
@@ -56,10 +58,17 @@ Confirm the change touches exactly one objective fact (a command, path, or binar
 ### Step 2 — Verify and Apply Narrowly
 - Confirm the new fact is objectively true (e.g., test that the new command executes and exists).
 - Show the exact proposed diff and one-line rationale.
-- Bump the version with a `factual-fix` changelog entry per the Versioning & Migration Protocol in `decision_procedure.md`. If the fix renames anything (e.g. a moved path used elsewhere in routing), run the Reference Integrity Scan before finalizing — a rename is still a rename even inside an otherwise narrow fix.
+- **Await explicit approval before writing anything.** A quick fix is still a disk write and is bound by the same Step 5 approval gate as every other mode, per the Non-Negotiables' "No Unapproved Writes" — showing the diff is not itself the go-ahead to apply it. Present it via `ask_question` where available (*"Apply this fix as shown?"* — `"(Recommended) Apply"` / `"I have changes first"` / `"Cancel"`) and wait for the reply.
+- Only once approved: bump the version with a `factual-fix` changelog entry per the Versioning & Migration Protocol in `decision_procedure.md`. If the fix renames anything (e.g. a moved path used elsewhere in routing), run the Reference Integrity Scan before finalizing — a rename is still a rename even inside an otherwise narrow fix.
 
 ### Step 3 — Targeted Dry-Run
 Re-verify only the specific track or command affected by the fix (see `dry_run_verification.md`).
+
+### Step 4 — Clear a Stale Circuit Breaker Breach If This Fix Caused It
+A wrong verification command, path, or binary name is one of the most common causes of a circuit-breaker breach — check `.agents/checkpoint.json` (or the host's equivalent) for an open breach record on the track this fix touches before finishing:
+- If none exists, there's nothing further to do.
+- If one exists and this fix demonstrably addresses the breach's recorded failure output, cite the specific prior failure and how this fix resolves it (not just "this should fix it"), then clear the breach record and reset that work order's attempt counter to 0. Note this explicitly in the same `factual-fix` changelog entry — do not fold it in silently.
+- **If the fix does not clearly and objectively address the breach's recorded cause**, leave the breach record open and say so. Deciding whether an unclear or disputed case "counts" as resolving the breach is a judgment call, not a fact-check — that's outside what a quick fix can settle. Divert to Sub-mode 3c instead, per the Behavior-Change Escalation rule in Step 1, and let its breach-clearing step (Sub-mode 3c Step 4) handle it under full scrutiny.
 
 ---
 

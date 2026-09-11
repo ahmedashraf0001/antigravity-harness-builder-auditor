@@ -61,9 +61,9 @@ Work through the following confirmations:
 
 ---
 
-## Step 4 — Write `PROJECT_SPEC.md`
+## Step 4 — Draft `PROJECT_SPEC.md`
 
-Reconstruct `PROJECT_SPEC.md` matching the structure defined in Genesis Step 3, derived from code reality and verified intent rather than aspirational planning:
+This is a proposal, not a disk write — nothing here goes to disk until the user approves it at Step 5's Human Approval Gate. Reconstruct `PROJECT_SPEC.md` matching the structure defined in Genesis Step 3, derived from code reality and verified intent rather than aspirational planning, and present it to the user for confirmation:
 
 ```markdown
 # Project Spec: <name>

@@ -1,6 +1,6 @@
 ---
 name: harness-builder
-description: Builds, adopts, or audits a project-specific multi-agent development harness for any codebase. Supports auto-detection or direct mode selection via slash command or prompt: '/harness genesis' (new project), '/harness adopt' (existing codebase), '/harness audit' (drift/updates), or '/harness' (auto-detect).
+description: Builds, adopts, or audits a project-specific multi-agent development harness for any codebase. Supports auto-detection or direct mode selection via slash command or prompt: '/harness genesis' (new project), '/harness adopt' (existing codebase), '/harness audit' (drift/updates), '/harness quickfix' (narrow factual fix to an existing harness), or '/harness' (auto-detect).
 ---
 
 # Role: Harness Builder (Meta-Agent)
@@ -25,10 +25,11 @@ Before taking any action, determine the mode. The workspace scan below (0.1) alw
 
 ### 0.1 Workspace Scan (Mandatory, Runs Before Branching)
 
-1. **List Workspace Root**: Examine top-level directories and dependency manifests.
+1. **List Workspace Root**: Examine top-level directories and dependency manifests. Note every directory that looks like a distinct build target or has its own independent manifest (a candidate sub-project root) — item 2 needs this list before it searches, and item 3 below formalizes it.
 2. **Search for Prior Harness**: Check if a structurally complete, versioned harness with this builder's fingerprint exists.
    - **Concrete Fingerprint Definition**: A workspace has a prior harness from this builder if, and only if, the host-appropriate `harness_log.json` (per the detected host's primitives file, e.g. `.agents/harness_log.json`, `.claude/harness_log.json`, `.cursor/harness_log.json`, `.windsurf/harness_log.json`) exists, parses as valid JSON, and contains at least one entry with a `version` field matching the schema in `decision_procedure.md`'s Versioning & Migration Protocol (i.e. an `add`/`rename`/`merge`/`split`/`remove`/`factual-fix`/`behavior-change` changelog, not an arbitrary log file of the same name). This is the single authoritative signal — do not infer a prior harness from the presence of `AGENTS.md`/`CLAUDE.md` alone, since those files can pre-date this builder or be hand-written.
-   - If a host-specific primitives file has not yet been determined (Step 3.6 runs later than Step 0), check for `harness_log.json` under any of the known host directories above, plus the project root, before concluding none exists.
+   - **Search Every Candidate Root, Not Just the Workspace Root (Monorepo Case)**: If item 1 surfaced more than one candidate sub-project root, run this fingerprint search under *each* candidate root independently, in addition to the workspace root — not only at the top level. A monorepo can have a versioned harness scoped to one sub-project (e.g. `packages/api/.claude/harness_log.json`) with nothing at the workspace root; searching only the root before item 3 has formally asked about split/unified scope is how that harness goes undetected and the sub-project gets misrouted into Genesis or Adoption instead of Audit. Carry forward a per-root result (found / not found / corrupted) into item 3.
+   - If a host-specific primitives file has not yet been determined (Step 3.6 runs later than Step 0), check for `harness_log.json` under any of the known host directories above, plus the project root (and, per the bullet above, every candidate sub-project root), before concluding none exists.
    - Informal notes (loose `AGENTS.md` notes, ad hoc linters, a hand-written checkpoint-like file with no `harness_log.json` behind it) do **not** count as a prior harness under this definition; treat them as input for Mode 2.
    - If a `harness_log.json`-like file exists but fails to parse, or parses without a recognizable `version`/`change_type` schema, treat it as **corrupted state, not absence** — surface this explicitly via `ask_question` (*"Found `[path]` but it doesn't match this builder's expected changelog schema — was this hand-edited, or is this from a different tool? How should I proceed?"*) rather than silently deciding it doesn't count and defaulting to Genesis or Adoption.
 3. **Monorepo / Sub-project Check**: Check for multiple distinct build targets or independent manifests — regardless of whether the user's invocation named an explicit mode. An explicit `/harness audit` (or genesis/adopt) on a monorepo still needs to know whether it's scoped to one sub-project, all of them, or needs the split/unified decision made first; skipping this check on the explicit-mode path is how a monorepo silently gets treated as one project. If multiple sub-projects are detected, prompt the user via `ask_question`:
@@ -37,14 +38,18 @@ Before taking any action, determine the mode. The workspace scan below (0.1) alw
      - `"(Recommended) Create separate harnesses scoped to each sub-project's risk profile"`
      - `"Share a single unified harness across all sub-projects"`
    - If the user already named an explicit mode, apply that mode within whatever scope this question resolves (per-sub-project or unified) rather than re-asking which mode to use.
+   - **Surface Mixed Per-Root Fingerprint States**: If item 2's per-root search found a mix (e.g. `packages/api` already has a versioned harness, `packages/web` does not), state that explicitly as part of this question rather than letting one sub-project's state stand in for the whole workspace — e.g. *"`packages/api` already has a versioned harness; `packages/web` does not. If you choose a unified harness, `packages/web`'s portion is still new territory even though the workspace as a whole has prior harness history — I'll fold it in as new tracks under an Audit rather than a from-scratch Genesis for that portion."* Each sub-project's mode still resolves independently off its own fingerprint result (per 0.3's table) even when the harness itself ends up unified.
 
 ### 0.2 Check for Explicit Mode Selection in Prompt / Command
-If the user explicitly requested a mode in their command or prompt, **honor their explicit choice**, informed by the 0.1 scan:
+If the user explicitly requested a mode in their command or prompt, **honor their explicit choice**, informed by the 0.1 scan. **Scope note for monorepos**: if 0.1 item 3 resolved a split or surfaced mixed per-root fingerprint states, apply every sanity check below independently to each resolved scope-root, using that root's own fingerprint result — not the workspace's state as a whole. A workspace-level "yes" or "no" from 0.1 does not settle the question for a sub-project whose own state differs (e.g. `packages/api` has a versioned harness and needs no sanity check under `audit`, while `packages/new-service` in the same invocation has neither code nor a harness and does need one):
 - **`genesis` / `new` / `greenfield` / `/harness-genesis`**: Jump directly to **Mode 1 — Genesis**.
   - *Sanity check*: If 0.1 found a prior versioned harness already exists for this workspace/sub-project, use `ask_question` to confirm the user wants a fresh Genesis pass rather than Mode 3 — Audit (see the "prior harness, no code yet" row below for why this matters).
 - **`adopt` / `existing` / `brownfield` / `/harness-adopt`**: Jump directly to **Mode 2 — Adoption**.
+  - *Sanity check*: If 0.1 found a prior versioned harness already exists for this workspace/sub-project, use `ask_question` to confirm the user wants a fresh Adoption pass (re-deriving `PROJECT_SPEC.md` from code reality from scratch) rather than Mode 3 — Audit, which would diff against and evolve the existing spec instead of re-authoring it. This is the same risk the Genesis sanity check above guards against — a prior harness plus a re-run of a from-scratch mode risks duplicating or silently overwriting what's already there.
 - **`audit` / `drift` / `update` / `/harness-audit`**: Jump directly to **Mode 3 — Audit** (or Sub-modes 3b `quickfix` / 3c `behavior`).
   - *Sanity check*: If 0.1 found no existing harness for this project, use `ask_question` to ask if they wish to switch to Mode 2.
+- **`quickfix` / `/harness-quickfix` / `/harness quickfix`**: Jump directly to **Mode 3 — Audit, Sub-mode 3b (Quick Fix)** ([references/mode3_audit.md](references/mode3_audit.md)), skipping Mode 3's own Step 0 entry-point question since the sub-mode is already explicit in the invocation.
+  - *Sanity check*: If 0.1 found no existing harness for this project, use `ask_question` to ask if they meant Mode 2 — Adoption instead — a "quick fix" presupposes something already exists to fix.
 
 ### 0.3 Auto-Detection Fallback (When No Mode Is Specified)
 If the user invoked the builder generically without specifying a mode (e.g. `"/harness"`, `"set up a dev harness"`, `"create an agent harness"`), resolve the mode from the 0.1 scan results using the table below.
@@ -54,13 +59,18 @@ If the user invoked the builder generically without specifying a mode (e.g. `"/h
 | Source Code Exists? | Prior Versioned Harness Exists? | Resolved Mode | Reference Guide |
 | :--- | :--- | :--- | :--- |
 | No | No | **Mode 1 — Genesis** | [references/mode1_genesis.md](references/mode1_genesis.md) |
-| No | Yes | **Mode 3 — Audit** (evolving the spec/harness ahead of any code) | [references/mode3_audit.md](references/mode3_audit.md) |
+| No | Yes | **Mode 3 — Audit** (evolving the spec/harness ahead of any code) — *confirm first, see below* | [references/mode3_audit.md](references/mode3_audit.md) |
 | Yes | No | **Mode 2 — Adoption** | [references/mode2_adoption.md](references/mode2_adoption.md) |
-| Yes | Yes | **Mode 3 — Audit** | [references/mode3_audit.md](references/mode3_audit.md) |
+| Yes | Yes | **Mode 3 — Audit** — *confirm first, see below* | [references/mode3_audit.md](references/mode3_audit.md) |
 
 The "No code yet, prior harness exists" row covers re-invoking the builder generically after a Genesis pass was already approved but before any application code was written — this must not silently restart Genesis and risk duplicating or overwriting the existing `PROJECT_SPEC.md`/harness. Route it into Mode 3 so the existing spec is diffed and evolved rather than re-authored from scratch; if Mode 3's own entry-point question (Step 0 of `mode3_audit.md`) determines the user actually wants to blow away the prior harness and start over, that is a legitimate outcome of Sub-mode 3a, not something Step 0 here should decide unilaterally.
 
-State the chosen mode, whether it was explicitly selected or auto-detected, and the monorepo scope it applies to (single project / one of several / unified) before proceeding.
+**Confirmation Gate for Auto-Resolved Mode 3 (Resolves the Tension with "No Automatic Mode 3")**: A generic invocation (`"/harness"`, `"set up a dev harness"`) carries no audit-flavored language — the user never said "audit," "update," or anything implying they want the existing harness re-evaluated. Silently dropping straight into Mode 3's full sub-mode question flow off workspace state alone would itself be the "automatic or speculative" triggering the Non-Negotiables and `mode3_audit.md`'s "User-Invoked Only" rule forbid. So when this table resolves to Mode 3 *from a generic invocation* (as opposed to the explicit `audit`/`quickfix` triggers in 0.2, which already constitute explicit invocation on their own), first state the detected state plainly and confirm via `ask_question` before proceeding:
+> *"This workspace already has a versioned harness (`v[X]`). Did you want to run an Audit on it, or were you asking about something else?"*
+> Options: `"(Recommended) Yes — run an Audit"` / `"No — I meant something else"`
+Only on a "yes" does Mode 3 actually start; a "no" means the auto-detect table's resolution doesn't apply and the request should be handled as whatever it actually was (not forced into any harness mode). This confirmation step is Mode 3-specific — Genesis and Adoption have no such restriction and proceed directly from auto-detection — because Mode 3 is the only mode carrying an explicit "never automatic" rule.
+
+State the chosen mode, whether it was explicitly selected, auto-detected outright (Genesis/Adoption), or auto-detected-and-confirmed (Mode 3), and the monorepo scope it applies to (single project / one of several / unified) before proceeding.
 
 ---
 
@@ -163,7 +173,7 @@ Follow [references/dry_run_verification.md](references/dry_run_verification.md) 
 - **Interactive Questioning First**: Never output static text-based multiple-choice questionnaires or menus when an interactive questioning tool (`ask_question`) is available in the environment.
 - **Investigation Is Not Intent**: Code reveals what was written, not why; treat patterns as hypotheses.
 - **No Guessing on Open Questions**: Unresolved ambiguities must be logged to open questions, never guessed past.
-- **No Automatic Mode 3**: Mode 3 runs only upon explicit user invocation.
+- **No Automatic Mode 3**: Mode 3 runs only upon explicit user invocation (an explicit `audit`/`quickfix` trigger per 0.2), or — when auto-detection resolves to Mode 3 from a generic invocation — only after the user has confirmed via the Step 0.3 confirmation gate. Never enter Mode 3's sub-mode workflow off workspace state alone.
 - **Fixed Decision Procedure**: Always follow Step 4 in exact order; determinism creates reliability.
 - **Order Dependency**: Never run Step 4 before Step 3.6 environment detection is complete.
 - **No Cross-Project Contamination**: Derive all tracks, roles, and invariants fresh from this project.
@@ -172,7 +182,7 @@ Follow [references/dry_run_verification.md](references/dry_run_verification.md) 
 - **No Unmapped Hosts**: Never derive Section 0, gates, or role delegation for any host from prose guidance alone with nothing consulted — Antigravity, Claude Code, Cursor, and Windsurf/Devin Desktop each have a dedicated primitives file; every other host must go through the `generic_tool_primitives.md` investigation procedure. A harness whose Step 3.6 output cannot cite which reference file (or which investigation findings, for an unlisted host) informed its primitive mapping has not completed Step 3.6.
 - **No Overstated Enforcement**: Never present a prose-only or advisory-only mechanism (e.g. Cascade's Section 0, a fully-manual role-discipline convention) as if it carried the same guarantee as a host with real blocking hooks or real subagent isolation. State the actual enforcement strength plainly at Step 5.
 - **No Uniform Risk Shortcuts**: Never apply uniform batching or model tiering across all tracks indiscriminately.
-- **No Shipping Known Breakage**: Never ship a harness with unresolved inconsistencies or broken verification commands.
+- **No Shipping Known Breakage**: Never ship a harness with unresolved inconsistencies or broken verification commands. If the same Step 6 check on the same track still fails after 3 consecutive fix attempts, stop and escalate to the human per `dry_run_verification.md` §8 rather than continuing to patch silently — the remediation loop is bound by the same retry discipline as the circuit breakers it verifies.
 - **No Runtime Self-Modification**: Routing and gating logic must be static and deterministic. Evolution happens only via Mode 3.
 - **Isolated Tool Installation Approvals**: Never bundle package installations into general harness approvals.
 - **Minimal Tool Scoping**: Never grant a role tools outside its immediate verification needs.

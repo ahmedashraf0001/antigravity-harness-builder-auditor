@@ -153,6 +153,7 @@ Alternatively, direct specialized commands can be used:
 * `/harness-genesis`
 * `/harness-adopt`
 * `/harness-audit`
+* `/harness-quickfix`
 
 ---
 
