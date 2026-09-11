@@ -32,7 +32,22 @@ Antigravity resolves customizations in this order (highest to lowest priority):
 ## 3. Concrete Implementation Details
 
 ### A. The Always-On Orchestrator (`AGENTS.md`)
-Placed at the repository root. This file is read by Antigravity on every prompt:
+Placed at the repository root. This file is read by Antigravity on every prompt. It MUST be structured with Section 0 prominently at the top:
+- **Section 0: Zero Direct Application Writes (Mandatory Subagent Delegation)**:
+  ```markdown
+  ## 0. MANDATORY: Zero Direct Application Writes (Subagent Delegation)
+  The primary orchestrator agent is STRICTLY FORBIDDEN from writing or editing application code directly (`write_to_file`, `replace_file_content`, etc.).
+  Under NO circumstances — including bug fixes, debugging, error remediation, or small tweaks — may the orchestrator edit source code with its own hands.
+
+  For EVERY coding task or bug report, the orchestrator MUST:
+  1. Determine the target track and assigned role.
+  2. IMMEDIATELY invoke a specialized subagent via `invoke_subagent` specifying:
+     - `TypeName`: `self`
+     - `Role`: The assigned role name (e.g. `Core Systems Engineer`, `Desktop UI Engineer`)
+     - `Model`: The assigned model tier (`pro` vs `flash`)
+     - `Prompt`: Detailed description of the task, user feedback, relevant files, and required verification test commands.
+  3. Audit the subagent's completion report and verification evidence before updating `.agents/checkpoint.json`.
+  ```
 - **Triage Matrix**: Maps task descriptions to the appropriate `.agents/skills/<track>/`.
 - **Halt-on-Ambiguity**: Mandates escalating unstated assumptions on invariant-bearing tracks to `OPEN_QUESTIONS.md`.
 - **Interruption & Resume Protocol**:
@@ -42,19 +57,6 @@ Placed at the repository root. This file is read by Antigravity on every prompt:
   1. Inspect `.agents/checkpoint.json` and `git status` before executing any commands.
   2. Never restart a task from the beginning.
   3. Verify the sanity of partial changes before proceeding.
-  ```
-- **Subagent Delegation Mandate (Zero Direct Application Writes)**:
-  ```markdown
-  ## Orchestrator Delegation Protocol
-  The primary orchestrator agent NEVER writes application code directly.
-  For every work order:
-  1. Determine the target track and assigned role.
-  2. Invoke a specialized subagent via `invoke_subagent` specifying:
-     - `TypeName`: `self` (or designated subagent type)
-     - `Role`: The assigned role name (e.g. `Core Systems Engineer`, `Desktop UI Engineer`)
-     - `Model`: The assigned model tier (`pro` vs `flash`)
-     - `Prompt`: Actionable task description referencing the track's `.agents/skills/<track>/SKILL.md` and required verification commands.
-  3. Audit the subagent's completion report and verification evidence before updating `.agents/checkpoint.json`.
   ```
 
 ### B. Track Definitions (`.agents/skills/<track-name>/SKILL.md`)
