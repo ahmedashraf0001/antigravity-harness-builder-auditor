@@ -21,9 +21,10 @@ Antigravity resolves customizations in this order (highest to lowest priority):
 | **Orchestrator & Routing** | Context Rule / Project Directive | `AGENTS.md` or `.agents/rules/routing.md` | Always-on rule loaded every session. Holds triage logic and the Interruption & Resume Protocol. |
 | **Work-Routing Tracks** | Project Skills | `.agents/skills/<track>/SKILL.md` | Progressive disclosure: Antigravity indexes the `description` and loads the full track workflow only when triggered. |
 | **Specialized Roles** | Subagents | Declared via `define_subagent` / `invoke_subagent` | Scoped agent instances with customized system prompts, tool permissions, and model tiering (`flash` vs `pro`). |
-| **Gating & Circuit Breakers**| Lifecycle Hooks | `.agents/hooks.json` | Runs automated verification or blocking scripts before/after tool actions. |
+| **Gating** | Lifecycle Hooks | `.agents/hooks.json` | Mechanical backstop: runs automated verification or blocking scripts before/after tool actions. Mandatory (not merely available) for any Hard Invariant or dual-gated track per the Mechanical Enforcement Protocol (`decision_procedure.md`) — Antigravity's hooks are this host's primary enforcement artifact, equivalent in role to Claude Code's `PreToolUse` or Cursor's `preToolUse`. |
+| **Circuit Breakers** | Always-On Directive + Persistent State | `AGENTS.md` (enforcement logic) & `.agents/checkpoint.json` (counter) | Attempt counters are data, not hook config — they must survive a session restart, so they live in checkpoint state and are read/incremented by the orchestrator logic in `AGENTS.md`, not solely by a hook. |
 | **Tool Provisioning** | Project MCP Servers | `.agents/mcp_config.json` | Connects external domain tools, live database inspectors, or testing runners. |
-| **State & Checkpoints** | Persistent Project State | `.agents/checkpoint.json` & `.agents/harness_log.json` | Persistent record of active steps, verified evidence, and version history. |
+| **State & Checkpoints** | Persistent Project State | `.agents/checkpoint.json` & `.agents/harness_log.json` | `checkpoint.json` holds active task state, evidence, and circuit breaker counters. `harness_log.json` holds the append-only structured changelog (version, change_type, entities_affected old→new, rationale) per the Versioning & Migration Protocol. |
 | **Specs & Rationale** | Artifact Documents | Project root or `<appDataDir>/brain/<conversation-id>/` | Renders interactively in Antigravity 2.0's Auxiliary Pane for transparent user review. |
 | **Interactive Questioning** | Native Interaction Tool | `ask_question` | Renders interactive multiple-choice dialogs in chat UI for gap resolution, stack selection, and approvals. |
 
@@ -57,6 +58,18 @@ Placed at the repository root. This file is read by Antigravity on every prompt.
   1. Inspect `.agents/checkpoint.json` and `git status` before executing any commands.
   2. Never restart a task from the beginning.
   3. Verify the sanity of partial changes before proceeding.
+  ```
+- **Circuit Breaker Enforcement**:
+  ```markdown
+  ## Circuit Breaker Protocol
+  Before dispatching a subagent for a gate retry on an existing work order:
+  1. Read the work order's attempt counter from `.agents/checkpoint.json`.
+  2. If the counter is at or above the track's stated ceiling (default 3):
+     - Do NOT dispatch another attempt.
+     - Write a breach record (work order, track, gate, prior attempts' verification output, timestamp).
+     - Escalate via `ask_question` (or `OPEN_QUESTIONS.md` if unavailable) and halt.
+  3. If under the ceiling, dispatch the subagent, then increment the counter ONLY after a verification result is observed — never on the subagent's self-report of success.
+  4. Pre-gate and post-gate counters on a dual-gated track are tracked and checked independently.
   ```
 
 ### B. Track Definitions (`.agents/skills/<track-name>/SKILL.md`)
@@ -92,7 +105,7 @@ In Antigravity 2.0, roles can be invoked as subagents with scoped capabilities:
   - Scope terminal access to specific verification binaries.
 
 ### D. Lifecycle Gates (`.agents/hooks.json`)
-Deterministic enforcement through Antigravity lifecycle hooks:
+Deterministic enforcement through Antigravity lifecycle hooks — this is Antigravity's real enforcement artifact per the Mechanical Enforcement Protocol (`decision_procedure.md`), not an optional extra. Every Hard Invariant and dual-gated track must have its verification logic written into a real hook script here (or a git pre-commit hook / CI check per the same protocol), not merely described in `AGENTS.md` prose:
 ```json
 {
   "pre_tool": [
@@ -119,8 +132,8 @@ When the user approves Step 5 in Antigravity, write the harness to this structur
 ├── ONBOARDING.md                     # Practical quick-reference for developers
 └── .agents/
     ├── checkpoint.json               # Active task state and evidence log
-    ├── harness_log.json              # Version history and audit trail
-    ├── hooks.json                    # Deterministic gating hooks (optional)
+    ├── harness_log.json              # Append-only structured changelog (version, change_type, entities_affected, rationale)
+    ├── hooks.json                    # Deterministic gating hooks (mandatory for Hard Invariants/dual-gates — real scripts, not stubs)
     └── skills/
         ├── <track-1>/
         │   └── SKILL.md              # Track 1 workflow & verification command

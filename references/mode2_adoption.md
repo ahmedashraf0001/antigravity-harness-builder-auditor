@@ -32,6 +32,12 @@ Use `ask_question`:
   - `"Legacy gap or bug (Do not enshrine as an invariant)"`
   *(The UI write-in allows providing tribal context)*
 
+**Provenance Tagging (Mandatory)**: Every finding that becomes an invariant must be recorded with its tag at the moment of confirmation, not reconstructed later:
+- Confirmed via this step → `[code-evidence + confirmed]`, with the file/location cited alongside.
+- Raised independently by the user with no corresponding code pattern → `[user-confirmed]`.
+- Raised via a confirmed near-miss in Step 3.3 → `[near-miss-derived]`.
+A pattern the user does not explicitly confirm stays a hypothesis in the open-questions log — it never reaches `PROJECT_SPEC.md` as an invariant, tagged or not.
+
 ---
 
 ## Step 3 — Confirm Domain Understanding, Invisible Constraints & Near-Misses
