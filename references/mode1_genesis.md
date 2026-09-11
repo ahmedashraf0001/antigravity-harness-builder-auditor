@@ -6,10 +6,13 @@
 
 ## Step 1 — Determine Sub-Mode: Build-With-Me vs. Have-The-Plan
 
-Ask exactly one question to let the answer sort the user naturally:
+Determine the user's starting point. In environments supporting `ask_question`, present this interactively:
+- **Question**: *"How would you like to build out the project specification?"*
+- **Options**:
+  - `"(Recommended) Build it together from scratch (Propose-then-confirm)"`
+  - `"I have an initial plan / spec ready to share (Extract-then-verify)"`
 
-> "Before we start — do you already have a plan or spec for this project you can share, or should we build it out together from scratch?"
-
+If answering directly from initial prompt context:
 - **A doc, paste, or unprompted full explanation** → **Sub-mode 1b: Extract-then-verify**
 - **"Just an idea" / wants help figuring it out** → **Sub-mode 1a: Propose-then-confirm**
 - **Partial or ambiguous input ("I have some notes")** → Treat as **1b**; its gap-detection step will absorb sparse input and converge toward 1a for whatever is missing.
@@ -18,7 +21,7 @@ Ask exactly one question to let the answer sort the user naturally:
 
 ## Step 2a — Sub-Mode 1a: Propose-Then-Confirm
 
-This is a **discussion, not a survey**. At every topic, state a concrete, reasoned guess and ask for confirmation or correction — never ask a bare open question when a defensible guess is possible (except for raw intent, where guessing would be presumptuous).
+This is a **discussion, not a survey**. At every topic, state a concrete, reasoned guess and ask for confirmation or correction — never ask a bare open question when a defensible guess is possible (except for raw intent, where guessing would be presumptuous). Where multiple options or tech stacks are suggested, provide them via `ask_question` with recommendations.
 
 ### Adaptive Pacing & Fatigue Mitigation
 
@@ -82,7 +85,7 @@ Log every proposal and resolution (accepted / corrected / rejected). The reasoni
 1. **Ingest** whatever the user hands over in full without interrupting.
 2. **Extract** the same structure 1a would have built: entities, classifications, catastrophic areas, change categories, stack.
 3. **Reflect back a structured summary with explicit gaps flagged**: Name specifically what the plan did not cover that the harness needs.
-4. **Targeted Follow-up**: For genuine gaps only, use 1a's propose-then-confirm. Do not re-open decisions the user already finalized in their plan.
+4. **Interactive Gap Resolution (MANDATORY)**: For all genuine gaps, architectural choices, tech stack recommendations, or scoping decisions, **invoke `ask_question`**. Provide structured questions with `(Recommended)` options and actionable choices. Do not dump them as static markdown text questions. Do not re-open decisions the user already finalized in their plan.
 
 ---
 

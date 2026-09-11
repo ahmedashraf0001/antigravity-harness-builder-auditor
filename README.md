@@ -18,6 +18,7 @@ The **Harness Builder** establishes a project-specific development harness: a de
 * **Multi-Tool Portability**: Step 3.6 inspects the host environment (Antigravity, Claude Code, Cursor, Windsurf) *before* deriving roles, mapping rules onto the host's actual native primitives.
 * **Anti-Sycophancy & High Rigor**:
   * **Zero Code Writes**: Meta-agents only write governance and planning configs, never application code.
+  * **Interactive UI Modals**: Uses Antigravity's native `ask_question` dialogs for stack choices, gap confirmations, and approvals rather than dumping static text questionnaires.
   * **Dual-Gating**: Irreversible operations (financial, legal, destructive) require pre-work order inspection and post-implementation audits.
   * **Deliberate Ambiguity Dry-Runs**: Synthetically tests whether the generated harness halts on ambiguous instructions rather than making unverified guesses.
   * **Interruption & Resume Protocol**: Append-only checkpointing to recover cleanly from disconnections without redoing work or hallucinating completion.

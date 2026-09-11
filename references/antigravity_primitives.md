@@ -25,6 +25,7 @@ Antigravity resolves customizations in this order (highest to lowest priority):
 | **Tool Provisioning** | Project MCP Servers | `.agents/mcp_config.json` | Connects external domain tools, live database inspectors, or testing runners. |
 | **State & Checkpoints** | Persistent Project State | `.agents/checkpoint.json` & `.agents/harness_log.json` | Persistent record of active steps, verified evidence, and version history. |
 | **Specs & Rationale** | Artifact Documents | Project root or `<appDataDir>/brain/<conversation-id>/` | Renders interactively in Antigravity 2.0's Auxiliary Pane for transparent user review. |
+| **Interactive Questioning** | Native Interaction Tool | `ask_question` | Renders interactive multiple-choice dialogs in chat UI for gap resolution, stack selection, and approvals. |
 
 ---
 
@@ -111,3 +112,22 @@ When the user approves Step 5 in Antigravity, write the harness to this structur
         └── <track-2>/
             └── SKILL.md              # Track 2 workflow & verification command
 ```
+
+---
+
+## 5. Interactive Questioning Protocol (`ask_question`)
+
+In Antigravity, never present multiple-choice questionnaires, gap resolutions, or approval gates as static text blocks in markdown. Instead, invoke the native `ask_question` tool to display an interactive UI dialog.
+
+### Usage Standards
+1. **Recommendations**: Always prefix your recommended choice with `(Recommended)`.
+2. **Options Format**: Format options as the user's direct response (e.g. `"Option A: In-browser web portal (QR code)"`).
+3. **No Redundant 'Other'**: Do not add an "Other" option; the Antigravity UI automatically provides a write-in input box.
+4. **Key Lifecycle Invocations**:
+   - **Step 0 Monorepo**: Selecting between a shared vs. split harness.
+   - **Mode 1 Genesis Gaps**: Selecting tech stack, mobile companion strategy, and directory streaming scope.
+   - **Mode 2 Adoption Hypotheses**: Confirming whether an unusual pattern is intentional domain logic or technical debt.
+   - **Mode 3 Audit Entry Points**: Choosing between Full Audit (3a), Quick Fix (3b), and Behavior Feedback (3c).
+   - **Step 4 Tool Installs**: Individual approval for each proposed new dependency.
+   - **Step 5 Approval Gate**: Explicit confirmation to write the harness to disk.
+

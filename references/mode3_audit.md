@@ -10,11 +10,12 @@
 
 ## Step 0 — Determine Entry Point
 
-Infer or ask which of the three entry points applies:
-
-1. **Full Audit (Sub-mode 3a)**: Significant project changes (major refactor, new feature area, stack migration) where the harness needs re-evaluation against reality.
-2. **Quick Fix (Sub-mode 3b)**: A narrow, objectively verifiable factual change (a test runner changed, a path moved, a tool was renamed).
-3. **Behavior Feedback (Sub-mode 3c)**: The user is dissatisfied with how the harness behaves (too slow, too strict, blocking legitimate work, miscategorizing tasks).
+Infer or ask which of the three entry points applies. If not obvious from the user's invocation prompt, invoke `ask_question`:
+- **Question**: *"What type of harness audit or update would you like to perform?"*
+- **Options**:
+  - `"(Recommended) Full Audit (Sub-mode 3a): Re-evaluate harness against major changes or architectural drift"`
+  - `"Quick Fix (Sub-mode 3b): Narrow factual correction (test command, path, tool name)"`
+  - `"Behavior Feedback (Sub-mode 3c): Change how a rule behaves (too strict, too slow, or misrouted)"`
 
 ---
 

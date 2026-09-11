@@ -20,12 +20,17 @@ Explore the codebase thoroughly using read-only tools:
 
 ## Step 2 — Treat Every Finding as a Hypothesis, Never a Conclusion
 
-Surface each ambiguous pattern individually as a focused question.
+Surface each ambiguous pattern individually as a focused interactive question via `ask_question`.
 - **Never batch these into one massive checklist dump** (batching invites rubber-stamping).
 - **Never silently promote a detected pattern into a hard invariant.**
 - **Never silently discard an unusual pattern.**
 
-> *"I found [pattern] in [location] — is that intentional domain logic, or a legacy gap nobody has caught yet?"*
+Use `ask_question`:
+- **Question**: *"I found [pattern] in [location]. How should this be treated in the harness?"*
+- **Options**:
+  - `"(Recommended) Intentional domain logic (Derive rule/invariant to protect it)"`
+  - `"Legacy gap or bug (Do not enshrine as an invariant)"`
+  *(The UI write-in allows providing tribal context)*
 
 ---
 
