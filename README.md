@@ -1,4 +1,4 @@
-# 🛡️ Antigravity Harness Builder/Auditor
+# 🛡️ Antigravity Harness Builder / Auditor
 
 > **A general-purpose meta-agent system for Google Antigravity (and modern AI coding assistants) that designs, adopts, and audits multi-agent development harnesses.**
 
