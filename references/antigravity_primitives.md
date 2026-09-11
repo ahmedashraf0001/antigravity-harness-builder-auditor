@@ -20,7 +20,7 @@ Antigravity resolves customizations in this order (highest to lowest priority):
 | :--- | :--- | :--- | :--- |
 | **Orchestrator & Routing** | Context Rule / Project Directive | `AGENTS.md` or `.agents/rules/routing.md` | Always-on rule loaded every session. Holds triage logic and the Interruption & Resume Protocol. |
 | **Work-Routing Tracks** | Project Skills | `.agents/skills/<track>/SKILL.md` | Progressive disclosure: Antigravity indexes the `description` and loads the full track workflow only when triggered. |
-| **Specialized Roles** | Subagents | Declared via `define_subagent` / `invoke_subagent` | Scoped agent instances with customized system prompts, tool permissions, and model tiering (`flash` vs `pro`). |
+| **Specialized Roles** | Subagents | Declared via `define_subagent` / `invoke_subagent` | Scoped agent instances with customized system prompts, tool permissions, and model tiering (`flash` vs `inherit`). |
 | **Gating** | Lifecycle Hooks | `.agents/hooks.json` | Mechanical backstop: runs automated verification or blocking scripts before/after tool actions. Mandatory (not merely available) for any Hard Invariant or dual-gated track per the Mechanical Enforcement Protocol (`decision_procedure.md`) — Antigravity's hooks are this host's primary enforcement artifact, equivalent in role to Claude Code's `PreToolUse` or Cursor's `preToolUse`. |
 | **Circuit Breakers** | Always-On Directive + Persistent State | `AGENTS.md` (enforcement logic) & `.agents/checkpoint.json` (counter) | Attempt counters are data, not hook config — they must survive a session restart, so they live in checkpoint state and are read/incremented by the orchestrator logic in `AGENTS.md`, not solely by a hook. |
 | **Tool Provisioning** | Project MCP Servers | `.agents/mcp_config.json` | Connects external domain tools, live database inspectors, or testing runners. |
@@ -45,7 +45,7 @@ Placed at the repository root. This file is read by Antigravity on every prompt.
   2. IMMEDIATELY invoke a specialized subagent via `invoke_subagent` specifying:
      - `TypeName`: `self`
      - `Role`: The assigned role name (e.g. `Core Systems Engineer`, `Desktop UI Engineer`)
-     - `Model`: The assigned model tier (`pro` vs `flash`)
+     - `Model`: The assigned model tier (`flash` or `inherit`)
      - `Prompt`: Detailed description of the task, user feedback, relevant files, and required verification test commands.
   3. Audit the subagent's completion report and verification evidence before updating `.agents/checkpoint.json`.
   ```
@@ -85,7 +85,7 @@ description: >-
 # Track: <Track Name>
 
 ## Assigned Role: <Role Name>
-- **Model Tier**: pro (or flash)
+- **Model Tier**: flash (or inherit)
 - **Tool Scoping**: Read, edit, run command (`<specific verification command>`)
 
 ## Workflow Steps
@@ -98,8 +98,8 @@ description: >-
 ### C. Specialized Roles (Antigravity Subagent Declarations)
 In Antigravity 2.0, roles can be invoked as subagents with scoped capabilities:
 - **Model Tiering**:
-  - `flash`: For low-risk, mechanical, cosmetic, or documentation tracks.
-  - `pro`: For dual-gated tracks, architectural design, and irreversible data logic.
+  - `flash`: Recommended default across all active subagent tracks (including dual-gated tracks, financial/data logic, and verification). Modern Flash models provide superior responsiveness, instruction adherence, and tool execution without the regressions observed in older Pro tiers.
+  - `inherit`: Inherits the active orchestrator model directly from the parent session.
 - **Tool Scoping**:
   - Set `enable_write_tools: false` for read-only audit roles.
   - Scope terminal access to specific verification binaries.

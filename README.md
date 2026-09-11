@@ -14,7 +14,7 @@ The **Harness Builder** establishes a project-specific development harness: a de
 
 * **100% Derived Fresh**: Carries zero hardcoded assumptions about tech stacks, track counts, or role names. Every rule and boundary is derived directly from user intent or codebase reality.
 * **Progressive Disclosure Architecture**: Lean root skill (~10 KB) that dynamically pulls structured reference manuals on demand, saving up to ~86% of initial prompt context window overhead.
-* **First-Class Antigravity 2.0 Integration**: Native slash commands (`/harness`), direct mode selection, subagent definitions with model tiering (`flash` vs `pro`), and `.agents/hooks.json` lifecycle gates as a mandatory (not optional) enforcement layer for every Hard Invariant.
+* **First-Class Antigravity 2.0 Integration**: Native slash commands (`/harness`), direct mode selection, subagent definitions with model tiering (`flash` vs `inherit`), and `.agents/hooks.json` lifecycle gates as a mandatory (not optional) enforcement layer for every Hard Invariant.
 * **Multi-Tool Portability**: Step 3.6 inspects the host environment (Antigravity, Claude Code, Cursor, Windsurf/Devin Desktop) *before* deriving roles, mapping rules onto the host's actual native primitives via a dedicated reference file per tool. Unlisted hosts fall through to a structured investigation procedure ([references/generic_tool_primitives.md](references/generic_tool_primitives.md)) rather than unguided improvisation, and every mapping discloses which guarantees are mechanically enforced (real hooks, real subagent isolation) versus advisory-only for that specific host.
 * **Anti-Sycophancy & High Rigor**:
   * **Zero Code Writes**: Meta-agents only write governance and planning configs, never application code.
