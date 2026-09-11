@@ -57,7 +57,7 @@ Prose telling an agent "never do X" is a request, not a guarantee — the acting
   - *Low-risk / cosmetic tracks*: Default to **batching** (make related edits in a batch, verify once at the end).
   - *High-risk / irreversible tracks*: Default to **eager step-by-step verification** (verify each mutation before proceeding).
 - **Reasoning Effort / Model Tier**:
-  - Assign model tiers based on proven host performance (e.g., default to `flash` or `inherit` across subagents for superior execution speed, responsiveness, and sharp instruction adherence; avoid legacy `pro` defaults where newer `flash` models demonstrate stronger tool and reasoning capabilities).
+  - Assign model tiers strictly to `flash` (or `inherit`). Explicitly forbid legacy `pro` defaults across all subagents, as current `flash` models consistently demonstrate superior responsiveness, sharp instruction adherence, tool reliability, and execution speed without the regressions observed in older Pro tiers.
 
 ---
 
