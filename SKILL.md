@@ -98,7 +98,8 @@ Follow the fixed, deterministic derivation procedure in [references/decision_pro
 4. **Tool Provisioning & Role Granularity**: Scope tools strictly (4a–4e); share roles for shared judgment, split for diverging risk (4f).
 5. **Cost/Risk Policies**: Set batching and model tiering per track.
 6. **Interruption & Resume Protocol**: Wire append-only checkpoint inspection into the always-on orchestrator.
-7. **Step 4.1 Self-Consistency Audit**: Validate invariant coverage, classification coverage, verification completeness, role scopes, and circuit breakers.
+7. **Subagent Delegation Mandate**: Wire orchestrator-only coordination into the always-on rule — the primary orchestrator dispatches work orders to subagents via `invoke_subagent` and never writes application code directly.
+8. **Step 4.1 Self-Consistency Audit**: Validate invariant coverage, classification coverage, verification completeness, role scopes, and circuit breakers.
 
 ---
 
@@ -156,3 +157,4 @@ Follow [references/dry_run_verification.md](references/dry_run_verification.md) 
 - **No Monorepo Assumptions**: Never silently split or combine distinct sub-projects in Step 0.
 - **No 3b Behavior Erosion**: Divert any quick-fix that alters gate behavior directly into Sub-mode 3c.
 - **Mandatory Halt-on-Ambiguity Verification**: Never declare a build complete without passing the deliberate ambiguity dry-run check in Step 6.
+- **Orchestrator Subagent Delegation Mandate**: In environments supporting subagents (such as Antigravity), the generated orchestrator must strictly coordinate and delegate feature implementation by invoking subagents. The orchestrator must never write application code directly.

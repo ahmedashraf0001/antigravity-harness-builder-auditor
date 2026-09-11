@@ -43,6 +43,19 @@ Placed at the repository root. This file is read by Antigravity on every prompt:
   2. Never restart a task from the beginning.
   3. Verify the sanity of partial changes before proceeding.
   ```
+- **Subagent Delegation Mandate (Zero Direct Application Writes)**:
+  ```markdown
+  ## Orchestrator Delegation Protocol
+  The primary orchestrator agent NEVER writes application code directly.
+  For every work order:
+  1. Determine the target track and assigned role.
+  2. Invoke a specialized subagent via `invoke_subagent` specifying:
+     - `TypeName`: `self` (or designated subagent type)
+     - `Role`: The assigned role name (e.g. `Core Systems Engineer`, `Desktop UI Engineer`)
+     - `Model`: The assigned model tier (`pro` vs `flash`)
+     - `Prompt`: Actionable task description referencing the track's `.agents/skills/<track>/SKILL.md` and required verification commands.
+  3. Audit the subagent's completion report and verification evidence before updating `.agents/checkpoint.json`.
+  ```
 
 ### B. Track Definitions (`.agents/skills/<track-name>/SKILL.md`)
 Each track is structured as an Antigravity skill:

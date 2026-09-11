@@ -66,6 +66,7 @@ Every generated harness must output:
 - **Circuit Breakers**: Fixed retry limits on gate failure loops (e.g., max 3 retries) with mandatory escalation to human.
 - **Halt-on-Ambiguity Rule**: Instruction to log open questions and escalate rather than guessing when invariants are at stake.
 - **Completion Reporting Contract**: Structured evidence-based reporting (restated requests, evidence, test commands run, deferred items).
+- **Orchestrator-Subagent Delegation Protocol**: The primary orchestrator agent **never writes application code directly**. Its responsibilities are strictly triage, dispatching work orders to specialized subagents, auditing verification evidence, and updating checkpoints. When the host environment supports subagents (e.g. Antigravity's `invoke_subagent`), feature implementation must always be executed by spawning subagents with their designated role prompt, track skill, and model tier (`pro` vs `flash`).
 - **Explicit Versioning**: Initial version `1.0`, incremented with a changelog entry on every approved audit.
 
 ---
