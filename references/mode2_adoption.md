@@ -89,3 +89,11 @@ This is a proposal, not a disk write — nothing here goes to disk until the use
 ## Open Questions
 - <unresolved anomalies, carried forward without guessing>
 ```
+
+---
+
+## Next Steps (Mandatory Transition)
+1. **DO NOT write `PROJECT_SPEC.md` or any other file to disk yet.**
+2. Transition directly to **[references/decision_procedure.md](decision_procedure.md)** to derive tracks, roles, invariants, gates, circuit breakers, and mechanical enforcement scripts.
+3. Complete the **Step 4.1 Self-Consistency Audit**.
+4. Present the complete proposal to the user in **Step 5 (Final Transparency Checkpoint)** and obtain explicit approval via `ask_question`. Only upon approval are files written to disk.

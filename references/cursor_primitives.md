@@ -149,8 +149,10 @@ Deterministic, mechanical enforcement — Cursor's actual teeth:
 
 ## 4. Standard Generated Workspace Layout
 
+When the user approves Step 5 on Cursor, write the harness directly inside the **target git repository root** (co-located with `.git/`):
+
 ```text
-<workspace_root>/
+<target_git_repository_root>/          # MUST be the git repo root, NEVER a parent folder
 ├── PROJECT_SPEC.md                   # Grounded project specification
 ├── HARNESS_RATIONALE.md              # Design rationale for all tracks and invariants
 ├── ONBOARDING.md                     # Practical quick-reference for developers
@@ -159,7 +161,7 @@ Deterministic, mechanical enforcement — Cursor's actual teeth:
     │   └── 000-orchestrator.mdc      # Always-on orchestrator, routing, & resume protocol
     ├── hooks.json                    # Deterministic gating hooks (failClosed on invariant gates)
     ├── hooks/
-    │   ├── verify_gate.sh            # Real enforcement script(s) — not a stub
+    │   ├── verify_gate.sh            # Real enforcement script (100% portable, Zero absolute paths)
     │   └── block_destructive.sh
     ├── mcp.json                      # Project MCP servers (if any tool provisioning needs it)
     ├── checkpoint.json               # Active task state, evidence log, circuit breaker counters

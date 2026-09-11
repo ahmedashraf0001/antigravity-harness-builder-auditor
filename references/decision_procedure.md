@@ -76,6 +76,40 @@ A generated harness is only as strong as what happens when the acting agent — 
 5. **Fail-Closed by Default**: Where the host's hook mechanism supports a fail-open/fail-closed choice (e.g. Cursor's `failClosed` flag, per `cursor_primitives.md` §3.D), every artifact backing a Hard Invariant must be configured fail-closed — a crashing or timing-out enforcement script must block the action, not silently let it through. Where the host only offers one behavior (e.g. Claude Code's exit-code contract, which blocks on exit 2 and has no separate fail-open mode to misconfigure), state plainly that this concern doesn't apply rather than leaving it unaddressed.
 6. **Installation Is Itemized Like Any Other Tool**: Generating a git hook, CI workflow file, or host hook script is itself a change to the project (a new file, a new CI job that will run on the team's account/minutes). Present each enforcement artifact through the same **Itemized Tool Installation Gate** as any other proposed dependency (Step 5.4) — do not bundle "also, I'm adding a pre-commit hook" into a general harness approval.
 7. **Verified by Execution, Not by Description**: Step 6's dry-run must actually invoke each generated enforcement artifact against a synthetic pass case and a synthetic fail case (see `dry_run_verification.md` Check 8) to prove the script's logic is real, rather than trusting that a described mechanism was implemented as described.
+8. **Strict Portability Protocol (Zero Machine-Specific Absolute Paths)**:
+   - **Never hardcode machine-specific absolute paths** (`/home/...`, `/Users/...`, `C:\...`) in ANY generated script, hook, or configuration. Hardcoded absolute paths break immediately on any teammate's machine, fresh clone, or CI runner.
+   - Every script must resolve the repository root dynamically:
+     ```bash
+     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+     REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || cd "${SCRIPT_DIR}/../.." && pwd)"
+     ```
+   - Monorepo sub-projects or application directories must be resolved relative to `${REPO_ROOT}`:
+     ```bash
+     APP_DIR="${REPO_ROOT}/zakaria-farid"
+     ```
+   - Git pre-commit hooks in `.git/hooks/` must invoke verification scripts relative to the repository:
+     ```bash
+     #!/usr/bin/env bash
+     REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || cd "$(dirname "$0")/../.." && pwd)"
+     exec bash "${REPO_ROOT}/.agents/scripts/verify_gates.sh" "$@"
+     ```
+   - Any script containing a hardcoded user directory fails Step 4.1 and Step 6 immediately.
+9. **Path-Aware Pre-Commit Mechanical Enforcement vs. Track Inner-Loop Verification**:
+   - **The Discrepancy Trap**: Never claim in documentation that a track (e.g. `SURFACE_UI`) is "single-gated and lightweight" while writing a pre-commit hook that blindly runs the entire heavy domain/financial test suite on every single commit.
+   - **Path-Aware Hook Scripting**: When tracks have significantly diverging verification costs (e.g. fast UI typecheck vs. exhaustive statutory accounting suite), `.agents/scripts/verify_gates.sh` should inspect staged files to run targeted gates:
+     ```bash
+     # Always run global baseline checks (e.g. typecheck)
+     npx tsc --noEmit
+
+     # Run domain-specific invariant suites only when relevant paths are modified
+     STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+     if echo "$STAGED_FILES" | grep -qE "(src/lib/erp|supabase/|accounting/)"; then
+       npm test
+     fi
+     ```
+   - **Documented Alternative**: If all tests run in <2 seconds and intentionally run globally on every commit, `HARNESS_RATIONALE.md` must explicitly document this: *"Outer Loop (Git Hook): runs global typecheck and fast statutory suite across all commits as a repository-wide safety net. Inner Loop (Subagent Work Order): the UI subagent is only responsible for verifying its own track's verification command (`tsc`) during task iterations."*
+10. **Repository Root Placement Anchor**:
+   - All harness files (`AGENTS.md`, `.agents/`, `PROJECT_SPEC.md`, `HARNESS_RATIONALE.md`, `ONBOARDING.md`) **MUST be written inside the target git repository root**, co-located with `.git/`. Writing harness files to a parent directory above the git repository is strictly forbidden.
 
 ---
 
@@ -193,5 +227,9 @@ Before presenting the harness to the user, run this audit against your derived s
 10. **Mechanical Enforcement Coverage**: For every Hard Invariant and dual-gated track, does at least one real enforcement artifact exist per the Mechanical Enforcement Protocol — and is it named with its file path in the `HARNESS_RATIONALE.md` ownership mapping? Cite the artifact path per invariant/track. An invariant whose only backing is rule text in the orchestrator file, with no hook/git-hook/CI artifact cited, has not passed this check. Confirm each cited artifact contains real gate logic (the actual verification command or pattern match), not an unconditional allow — quote the relevant line of the script.
 11. **Reference Integrity (Audit-Only)**: If this run renamed, merged, split, or removed any track/role/invariant, was the Reference Integrity Scan run and its result reported? Cite the scan result. Not applicable on a first-time Genesis or Adoption build with nothing yet to rename.
 12. **Non-Invariant Dual-Gate Provenance**: For every dual-gated track that does *not* carry a Hard Invariant, does `HARNESS_RATIONALE.md` record it as `dual-gated: non-invariant` with the human's stated reason, per the opt-in path in Step 4 item 3? Cite the line. A dual-gated track with no Hard Invariant and no recorded non-invariant reason has not passed this check — resolve it via `ask_question` (confirm a Hard Invariant classification, record the missing reason, or downgrade the track to single-gated) before proceeding; do not retroactively invent a reason to make this check pass.
+13. **Strict Portability Check (Zero Absolute Paths)**: Are all paths in generated scripts (`verify_gates.sh`), hooks (`.git/hooks/pre-commit`), and configs dynamic and repository-relative? Cite the dynamic root resolution line (e.g. `REPO_ROOT="$(git rev-parse --show-toplevel ...)"` or `dirname "${BASH_SOURCE[0]}"`). Grep all scripts for machine-specific paths (`/home/`, `/Users/`, `C:\`). Any script or hook containing hardcoded absolute paths fails this check immediately.
+14. **Repository Root Placement Anchor**: Is the target git repository root confirmed, and are ALL generated files (`AGENTS.md`, `.agents/`, `PROJECT_SPEC.md`, `HARNESS_RATIONALE.md`, `ONBOARDING.md`) located strictly INSIDE the git repository root (co-located with `.git/`)? Any file placed in a parent workspace directory above the repository fails this check immediately.
+15. **Directive Singularity & Reconciliation**: Were pre-existing directives (framework-generated blocks like Next.js `<!-- BEGIN:nextjs-agent-rules -->`, sub-package `AGENTS.md`, legacy `.cursorrules`) identified and reconciled? Confirm that exactly ONE top-level orchestrator directive exists at the repository root, that framework blocks are preserved in their native sub-packages, and that no duplicate shadow rule files (such as `.agents/rules/harness.md` duplicating `AGENTS.md`) were created.
+16. **Path-Aware Gating & Scope Alignment**: Does the mechanical enforcement script either (a) inspect staged files (`git diff --cached`) to run heavy invariant suites only when relevant domain files are modified while running global baseline checks, OR (b) does `HARNESS_RATIONALE.md` explicitly document why the outer git pre-commit hook enforces a global safety net while the track's inner loop runs a lighter subset? Confirm there is no undocumented contradiction between documented track gates and actual hook behavior.
 
 If any gap is found, correct it before proceeding to Step 5. Present the completed checklist — with citations, not just verdicts — as part of the Step 5 transparency document, so the human reviewer is auditing the same evidence rather than re-trusting a bare "all checks passed."

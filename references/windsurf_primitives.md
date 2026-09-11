@@ -125,8 +125,10 @@ Both agents read the same hook configuration format — this is genuine mechanic
 
 ## 4. Standard Generated Workspace Layout
 
+When the user approves Step 5 on Windsurf/Devin, write the harness directly inside the **target git repository root** (co-located with `.git/`):
+
 ```text
-<workspace_root>/
+<target_git_repository_root>/          # MUST be the git repo root, NEVER a parent folder
 ├── AGENT.md (or AGENTS.md, or .windsurf/rules/000-orchestrator.md)   # Always-on orchestrator; Section 0 content depends on detected state
 ├── PROJECT_SPEC.md
 ├── HARNESS_RATIONALE.md              # Must state which agent + Subagents toggle state was detected and why Section 0 takes the form it does
@@ -141,7 +143,7 @@ Both agents read the same hook configuration format — this is genuine mechanic
     │   └── <track-2>.md
     ├── hooks.json                    # Deterministic gating hooks — real scripts, not stubs
     ├── hooks/
-    │   ├── verify_gate.sh
+    │   ├── verify_gate.sh            # Real enforcement script (100% portable, Zero absolute paths)
     │   └── block_destructive.sh
     ├── checkpoint.json
     └── harness_log.json

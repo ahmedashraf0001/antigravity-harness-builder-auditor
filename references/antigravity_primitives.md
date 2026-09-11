@@ -104,7 +104,7 @@ In Antigravity 2.0, roles can be invoked as subagents with scoped capabilities:
   - Set `enable_write_tools: false` for read-only audit roles.
   - Scope terminal access to specific verification binaries.
 
-### D. Lifecycle Gates (`.agents/hooks.json`)
+### D. Lifecycle Gates (`.agents/hooks.json`) & Portable Scripts
 Deterministic enforcement through Antigravity lifecycle hooks — this is Antigravity's real enforcement artifact per the Mechanical Enforcement Protocol (`decision_procedure.md`), not an optional extra. Every Hard Invariant and dual-gated track must have its verification logic written into a real hook script here (or a git pre-commit hook / CI check per the same protocol), not merely described in `AGENTS.md` prose:
 ```json
 {
@@ -118,15 +118,57 @@ Deterministic enforcement through Antigravity lifecycle hooks — this is Antigr
 }
 ```
 
+#### Portable Gate Enforcement Script Template (`.agents/scripts/verify_gates.sh`)
+Generated scripts must be **100% portable** with zero machine-specific paths:
+```bash
+#!/usr/bin/env bash
+# ==============================================================================
+# Mechanical Gate Enforcement Script (Portable, Fail-Closed)
+# Returns Exit Code 2 on Gate Failure
+# ==============================================================================
+set -eo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "$REPO_ROOT"
+
+# Global baseline check (e.g. typecheck, fast lint)
+echo "=== [Gate 1] TypeScript Strict Typecheck ==="
+if ! npx tsc --noEmit; then
+  echo "❌ Gate 1 FAILED: Compilation errors."
+  exit 2
+fi
+
+# Path-aware domain invariant check (run heavy domain suite if domain files touched)
+STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+if echo "$STAGED_FILES" | grep -qE "(src/lib/erp|supabase/|accounting/)" || [ -z "$STAGED_FILES" ]; then
+  echo "=== [Gate 2] Financial Invariants & Statutory Suite ==="
+  if ! npm test; then
+    echo "❌ Gate 2 FAILED: Domain invariants broken."
+    exit 2
+  fi
+fi
+
+echo "✓ ALL GATES PASSED."
+exit 0
+```
+
+#### Git Pre-Commit Hook Template (`.git/hooks/pre-commit`)
+```bash
+#!/usr/bin/env bash
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || cd "$(dirname "$0")/../.." && pwd)"
+exec bash "${REPO_ROOT}/.agents/scripts/verify_gates.sh" "$@"
+```
+
 ---
 
 ## 4. Standard Generated Workspace Layout
 
-When the user approves Step 5 in Antigravity, write the harness to this structure:
+When the user approves Step 5 in Antigravity, write the harness directly inside the **target git repository root** (co-located with `.git/`):
 
 ```text
-<workspace_root>/
-├── AGENTS.md                         # Always-on orchestrator, routing, & resume protocol
+<target_git_repository_root>/          # MUST be the git repo root, NEVER a parent folder
+├── AGENTS.md                         # Single authoritative orchestrator, routing, & resume protocol
 ├── PROJECT_SPEC.md                   # Grounded project specification
 ├── HARNESS_RATIONALE.md              # Design rationale for all tracks and invariants
 ├── ONBOARDING.md                     # Practical quick-reference for developers
@@ -134,12 +176,18 @@ When the user approves Step 5 in Antigravity, write the harness to this structur
     ├── checkpoint.json               # Active task state and evidence log
     ├── harness_log.json              # Append-only structured changelog (version, change_type, entities_affected, rationale)
     ├── hooks.json                    # Deterministic gating hooks (mandatory for Hard Invariants/dual-gates — real scripts, not stubs)
+    ├── scripts/
+    │   └── verify_gates.sh           # Portable fail-closed verification script (Zero absolute paths)
     └── skills/
         ├── <track-1>/
         │   └── SKILL.md              # Track 1 workflow & verification command
         └── <track-2>/
             └── SKILL.md              # Track 2 workflow & verification command
 ```
+
+> [!WARNING]
+> **No Parent Workspace Dumping**: If the IDE opened a parent folder containing the git repository inside a subdirectory (e.g. workspace is `~/project/` but git repo is `~/project/Real-Estate-Platform`), ALL harness files must live inside `~/project/Real-Estate-Platform/`. Never write harness files into `~/project/`.
+> **Single Orchestrator Rule**: Do NOT create a duplicate `.agents/rules/harness.md` mirroring `AGENTS.md`. `AGENTS.md` at the repo root is the single authoritative always-on directive. Preserve framework-generated notices (such as Next.js agent blocks) in their respective sub-packages.
 
 ---
 

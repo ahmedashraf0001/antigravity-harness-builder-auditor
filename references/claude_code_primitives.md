@@ -147,10 +147,10 @@ Deterministic, mechanical enforcement — this is Claude Code's actual teeth, eq
 
 ## 4. Standard Generated Workspace Layout
 
-When the user approves Step 5 on Claude Code, write the harness to this structure:
+When the user approves Step 5 on Claude Code, write the harness directly inside the **target git repository root** (co-located with `.git/`):
 
 ```text
-<workspace_root>/
+<target_git_repository_root>/          # MUST be the git repo root, NEVER a parent folder
 ├── CLAUDE.md                         # Always-on orchestrator, routing, & resume protocol
 ├── PROJECT_SPEC.md                   # Grounded project specification
 ├── HARNESS_RATIONALE.md              # Design rationale for all tracks and invariants
@@ -161,7 +161,7 @@ When the user approves Step 5 on Claude Code, write the harness to this structur
     ├── checkpoint.json               # Active task state, evidence log, circuit breaker counters
     ├── harness_log.json              # Append-only structured changelog
     ├── scripts/
-    │   └── verify_gate.sh            # Real enforcement script(s) invoked by hooks — not a stub
+    │   └── verify_gate.sh            # Real enforcement script (100% portable, Zero absolute paths)
     ├── agents/
     │   ├── <role-1>.md               # Subagent: role prompt, tool scope, model tier
     │   └── <role-2>.md
