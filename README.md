@@ -83,19 +83,49 @@ flowchart TD
 
 ---
 
-## ⚡ Antigravity 2.0 Quickstart & Installation
+## ⚡ Quickstart & Installation Guides
 
-### Global Installation (Available across all projects)
-Symlink this repository into Antigravity's global customization directory:
+Install the Harness Builder globally so it is available across **every** project in Antigravity 2.0.
+
+### 🐧 Linux / macOS Quickstart
+
+Run in your terminal (Bash/Zsh):
 
 ```bash
-# 1. Create global skills directory
+# 1. Clone the repository (if not already local)
+git clone https://github.com/ahmedashraf0001/harness-builder.git ~/harness-builder
+cd ~/harness-builder
+
+# 2. Create Antigravity's global skills directory
 mkdir -p ~/.gemini/config/skills
 
-# 2. Symlink the harness builder
+# 3. Create global symlinks (live sync with repo updates)
 ln -sf "$(pwd)" ~/.gemini/config/skills/harness
 ln -sf "$(pwd)" ~/.gemini/config/skills/harness-builder
 ```
+
+---
+
+### 🪟 Windows Quickstart
+
+Open **PowerShell** (Run as Administrator for symlinks):
+
+```powershell
+# 1. Clone the repository (if not already local)
+git clone https://github.com/ahmedashraf0001/harness-builder.git "$HOME\harness-builder"
+Set-Location "$HOME\harness-builder"
+
+# 2. Create Antigravity's global skills directory
+New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\skills"
+
+# 3. Create global directory junctions/symlinks
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\config\skills\harness" -Target "$PWD" -Force
+New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\config\skills\harness-builder" -Target "$PWD" -Force
+```
+
+*(Note: If Developer Mode is disabled on Windows and you cannot create symlinks, create a Junction with `cmd /c mklink /J "%USERPROFILE%\.gemini\config\skills\harness" "%USERPROFILE%\harness-builder"`).*
+
+---
 
 ### Invocation Commands in Chat
 Type `/` in the Antigravity 2.0 chat canvas to trigger autocomplete:
