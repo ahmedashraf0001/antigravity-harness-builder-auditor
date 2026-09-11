@@ -205,5 +205,5 @@ In Antigravity, never present multiple-choice questionnaires, gap resolutions, o
    - **Mode 2 Adoption Hypotheses**: Confirming whether an unusual pattern is intentional domain logic or technical debt.
    - **Mode 3 Audit Entry Points**: Choosing between Full Audit (3a), Quick Fix (3b), and Behavior Feedback (3c).
    - **Step 4 Tool Installs**: Individual approval for each proposed new dependency.
-   - **Step 5 Approval Gate**: Explicit confirmation to write the harness to disk.
+   - **Step 5 Approval Gate (MANDATORY TOOL CALL)**: Explicit confirmation to write the harness to disk. In Antigravity, **you MUST invoke `ask_question` and stop calling tools to end your turn**. You are strictly forbidden from calling `write_to_file`, `replace_file_content`, or shell heredocs in the same turn. Files may only be created in the subsequent turn after the user explicitly selects "(Recommended) Approve".
 

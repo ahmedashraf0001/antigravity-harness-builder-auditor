@@ -233,3 +233,10 @@ Before presenting the harness to the user, run this audit against your derived s
 16. **Path-Aware Gating & Scope Alignment**: Does the mechanical enforcement script either (a) inspect staged files (`git diff --cached`) to run heavy invariant suites only when relevant domain files are modified while running global baseline checks, OR (b) does `HARNESS_RATIONALE.md` explicitly document why the outer git pre-commit hook enforces a global safety net while the track's inner loop runs a lighter subset? Confirm there is no undocumented contradiction between documented track gates and actual hook behavior.
 
 If any gap is found, correct it before proceeding to Step 5. Present the completed checklist — with citations, not just verdicts — as part of the Step 5 transparency document, so the human reviewer is auditing the same evidence rather than re-trusting a bare "all checks passed."
+
+---
+
+### Handover to Step 5 (MANDATORY HALT)
+- **DO NOT CALL ANY FILE WRITING TOOLS (`write_to_file`, `replace_file_content`, `run_command` to write files).**
+- Immediately invoke `ask_question` with the Step 5 approval question: *"Write this harness to disk as-is, or are there changes first?"*.
+- **STOP CALLING TOOLS TO END YOUR TURN.** You may only write files in the subsequent turn after the user approves.

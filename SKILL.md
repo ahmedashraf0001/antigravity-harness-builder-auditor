@@ -144,30 +144,27 @@ Follow the fixed, deterministic derivation procedure in [references/decision_pro
 
 ---
 
-## Step 5 (All Modes) — Final Transparency Checkpoint Before Writing
+## Step 5 (All Modes) — Mandatory Approval Gate: Call `ask_question` & STOP
 
 > [!CAUTION]
-> **CRITICAL HARD STOP: ZERO DISK WRITES BEFORE STEP 5 INTERACTIVE APPROVAL**
-> You are **STRICTLY FORBIDDEN** from calling `write_to_file`, `replace_file_content`, or running ANY shell commands (`cat << 'EOF' >`, `echo >`, `touch`, `mkdir`, `cp`, `git`) that create or modify files on disk before the user explicitly selects "Approve" in the Step 5 interactive modal.
+> **MANDATORY TOOL CALL & TURN TERMINATION (ZERO FILE WRITES IN THIS TURN)**
+> In environments supporting `ask_question` (such as Antigravity), **YOU MUST CALL `ask_question` AS YOUR TOOL CALL AND STOP CALLING TOOLS TO END YOUR TURN**.
+> You are **STRICTLY FORBIDDEN** from calling `write_to_file`, `replace_file_content`, or running ANY shell commands (`cat << 'EOF' >`, `echo >`, `touch`, `mkdir`, `cp`) in the same turn.
 > All drafting in earlier steps (Steps 1–4) exists **ONLY in conversational memory, chat responses, or draft planning artifacts**.
-> Prematurely writing or staging any harness or project files on disk before receiving interactive approval via `ask_question` is a **fatal protocol breach**.
+> **You may ONLY create files on disk in the NEXT turn, AFTER the user explicitly clicks "Approve".** Writing or staging ANY files before the user responds to `ask_question` is a fatal protocol breach.
 
-Before writing any file to disk:
+Execute in this exact order:
 
-1. **Present Complete Harness**: Display the entire proposed harness as a unified document (tracks, roles, invariants with provenance tags, gates, verification commands, tool scope justifications, circuit breakers), including the cited Step 4.1 audit results — the human reviews the same evidence the self-audit checked, not just its verdict.
-2. **Surface Explicit Judgment Calls**: Call out any classification or boundary that required interpretation:
-   > *"I classified [Entity] as [Classification] because [reason] — confirm if that matches your intent."*
-3. **State Real Day-to-Day Practical Tradeoffs**: Explain how boundaries affect developer workflow (e.g., dual-gating latency vs. safety).
-4. **Itemized Tool Installation Gate**: Present any proposed new dependencies/tools separately, including every generated enforcement artifact (git hooks, CI workflow files, host hook scripts) per the Mechanical Enforcement Protocol. Each gets its own distinct yes/no approval (via `ask_question` if supported) — a new pre-commit hook or CI job is a change to the project's workflow, not a bundled default.
-5. **Awaiting Approval via Interactive Modal**: If `ask_question` is available, present the approval gate interactively:
+1. **Present Complete Harness in Response**: Render the proposed specification, tracks, roles, invariants with provenance tags, gates, verification commands, and Step 4.1 cited audit checklist in the chat response.
+2. **Execute Mandatory Tool Call**: Call `ask_question`:
    - Question: *"Write this harness to disk as-is, or are there changes first?"*
    - Options:
      - `"(Recommended) Approve and write the complete harness to disk"`
      - `"I have changes to request before writing"`
      - `"Abort without writing"`
-   Never proceed on silence or ambiguity.
-6. **Write Confirmed Layout**: Only after receiving explicit approval from the user, write `PROJECT_SPEC.md`, `HARNESS_RATIONALE.md`, `ONBOARDING.md`, rule files, and persistent logs directly into the **target git repository root**.
-7. **Read-Back Verification**: Re-open and verify every written file.
+3. **STOP AND WAIT**: Do not call any further tools. Wait for the user's interactive response.
+4. **Write Confirmed Layout (Subsequent Turn Only)**: In the turn *after* the user selects "(Recommended) Approve", write `PROJECT_SPEC.md`, `HARNESS_RATIONALE.md`, `ONBOARDING.md`, rule files, and persistent logs directly into the **target git repository root**.
+5. **Read-Back Verification**: Re-open and verify every written file.
 
 ---
 
