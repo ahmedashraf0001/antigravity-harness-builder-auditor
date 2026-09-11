@@ -80,5 +80,6 @@ Before presenting the harness to the user, run this 5-point audit against your d
 3. **Verification Completeness**: Does every track specify an actual, runnable verification command?
 4. **Role Scope Overlap & Granularity**: Do any roles have conflicting boundaries? Does any role inappropriately mix dual-gated and non-dual-gated tracks?
 5. **Circuit Breaker & Halt-on-Ambiguity Wiring**: Are circuit breakers and halt-on-ambiguity directives physically attached to all invariant-bearing tracks?
+6. **Orchestrator Delegation Wiring**: Does the top-level directive file (`AGENTS.md`) explicitly contain Section 0 forbidding the orchestrator from running edit/write tools and mandating `invoke_subagent` for all code tasks and bug fixes? An orchestrator permitted to hand-edit code undermines role boundaries and pollutes context.
 
 If any gap is found, correct it before proceeding to Step 5.

@@ -131,7 +131,8 @@ Follow [references/dry_run_verification.md](references/dry_run_verification.md) 
 2. Execute verification commands in read-only mode to confirm they exist and run.
 3. **Halt-on-Ambiguity Test**: Present a deliberately ambiguous synthetic task for invariant-bearing tracks to prove the harness halts and escalates rather than guessing.
 4. Verify the resume protocol instruction is wired into the always-on rule.
-5. Deliver the structured Dry-Run Verification Report.
+5. Verify that **Section 0: Zero Direct Application Writes** is physically wired into `AGENTS.md`, strictly mandating `invoke_subagent` for all implementation and bug-fixing tasks.
+6. Deliver the structured Dry-Run Verification Report.
 
 ---
 

@@ -37,8 +37,16 @@ Re-open the top-level always-on directive file (e.g., `AGENTS.md` or `.agents/ru
 - Confirm it points to the valid, persisted checkpoint file path (`.agents/checkpoint.json`).
 - Ensure the instruction orders the agent to inspect the checkpoint before performing any action.
 
-### 5. Failure Remediation
-If any track misroutes, points to an invalid binary/command, or fails the halt-on-ambiguity check:
+### 5. Orchestrator Zero-Direct-Writes & Subagent Delegation Wiring Check
+Re-open `AGENTS.md`:
+- Confirm that **Section 0: Zero Direct Application Writes** is physically present at the top.
+- Confirm it explicitly states:
+  * The orchestrator is **strictly forbidden** from writing or editing application code directly (`write_to_file`, `replace_file_content`, etc.).
+  * For any task, bug fix, or error remediation, the orchestrator **must dispatch a subagent** via `invoke_subagent`.
+- If Section 0 is missing or weak, add/strengthen it before declaring the build complete.
+
+### 6. Failure Remediation
+If any track misroutes, points to an invalid binary/command, fails the halt-on-ambiguity check, or lacks the Section 0 delegation rule:
 - Correct the rule or configuration file.
 - Re-run the dry-run check until all tracks pass cleanly. Never ship known breakage.
 
@@ -57,5 +65,6 @@ Deliver the dry-run results as a structured report matching your completion cont
 | **<Track 2>** | *"<ambiguous task>"* | PASS (-> Role Y) | PASS (`pytest tests/audit`) | PASS (Halted & Escalated) |
 
 - **Resume Protocol Status**: Verified wired to `AGENTS.md` pointing to `.agents/checkpoint.json`.
+- **Orchestrator Delegation Status**: Verified wired to `AGENTS.md` (Section 0: Zero Direct Writes, mandatory `invoke_subagent`).
 - **Harness Status**: Active and verified at Version `1.0`.
 ```
