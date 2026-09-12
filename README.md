@@ -103,35 +103,27 @@ Install the Harness Builder globally so it is available across **every** project
 Run in your terminal (Bash/Zsh):
 
 ```bash
-# 1. Clone the repository (if not already local)
-git clone https://github.com/ahmedashraf0001/harness-builder.git ~/harness-builder
-cd ~/harness-builder
+# 1. Clone the repository
+git clone https://github.com/ahmedashraf0001/antigravity-harness-builder-auditor.git ~/antigravity-harness-builder-auditor
+cd ~/antigravity-harness-builder-auditor
 
-# 2. Create Antigravity's global skills directory
-mkdir -p ~/.gemini/config/skills
-
-# 3. Create global symlinks (live sync with repo updates)
-ln -sf "$(pwd)" ~/.gemini/config/skills/harness
-ln -sf "$(pwd)" ~/.gemini/config/skills/harness-builder
+# 2. Run the automated installer (installs /harness, /harness-builder, /harness-genesis, /harness-adopt, /harness-audit)
+./install.sh
 ```
 
 ---
 
 ### 🪟 Windows Quickstart
 
-Open **PowerShell** (Run as Administrator for symlinks):
+Open **PowerShell** (Run as Administrator):
 
 ```powershell
-# 1. Clone the repository (if not already local)
-git clone https://github.com/ahmedashraf0001/harness-builder.git "$HOME\harness-builder"
-Set-Location "$HOME\harness-builder"
+# 1. Clone the repository
+git clone https://github.com/ahmedashraf0001/antigravity-harness-builder-auditor.git "$HOME\antigravity-harness-builder-auditor"
+Set-Location "$HOME\antigravity-harness-builder-auditor"
 
-# 2. Create Antigravity's global skills directory
-New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\skills"
-
-# 3. Create global directory junctions/symlinks
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\config\skills\harness" -Target "$PWD" -Force
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\config\skills\harness-builder" -Target "$PWD" -Force
+# 2. Run the automated installer in Git Bash or execute installation steps
+bash ./install.sh
 ```
 
 *(Note: If Developer Mode is disabled on Windows and you cannot create symlinks, create a Junction with `cmd /c mklink /J "%USERPROFILE%\.gemini\config\skills\harness" "%USERPROFILE%\harness-builder"`).*
