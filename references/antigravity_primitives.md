@@ -95,6 +95,12 @@ description: >-
 4. Render completion report adhering to the reporting contract.
 ```
 
+### Critical Invariant: Skill Directory Physical Structure
+When establishing project or global skills for Antigravity:
+- **No Directory Symlinks at Skill Root**: Antigravity's skill scanner evaluates directory entries using `IsDir()`. Symbolic links to directories evaluate to `false` and are silently skipped.
+- **Physical Skill Folders**: Every skill under `.agents/skills/<skill-name>/` or `~/.gemini/config/skills/<skill-name>/` must be a physical directory containing a physical `SKILL.md`.
+- **Sub-Resource Symlinks Allowed**: Subdirectories within the skill (such as `references/` or `scripts/`) may safely be symlinks to a centralized repository.
+
 ### C. Specialized Roles (Antigravity Subagent Declarations)
 In Antigravity 2.0, roles can be invoked as subagents with scoped capabilities:
 - **Model Tiering**:
